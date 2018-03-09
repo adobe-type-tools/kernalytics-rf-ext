@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>addToMenu</key>
+	<array>
+		<dict>
+			<key>path</key>
+			<string>kernGraph.py</string>
+			<key>preferredName</key>
+			<string>Kern-A-Lytics</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+	</array>
+	<key>developer</key>
+	<string>Adobe Type Tools</string>
+	<key>developerURL</key>
+	<string>https://github.com/adobe-type-tools</string>
+	<key>html</key>
+	<false/>
+	<key>launchAtStartUp</key>
+	<integer>0</integer>
+	<key>mainScript</key>
+	<string></string>
+	<key>name</key>
+	<string>Kern-A-Lytics</string>
+	<key>requiresVersionMajor</key>
+	<string>3</string>
+	<key>requiresVersionMinor</key>
+	<string>0</string>
+	<key>timeStamp</key>
+	<real>1520561699.65</real>
+	<key>version</key>
+	<string>0.1</string>
+</dict>
+</plist>
