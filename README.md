@@ -2,7 +2,7 @@
 ⚠️ WARNING: This extension works, but it’s work in progress. 
 It may not do what you expect. Back up your data. ⚠️ 
 
-This plugin needs at least Glyphs 2.5-1120!
+The Glyphs plugin needs at least Glyphs 2.5-1120!
 
 <img src="kern-a-lytics-Glyphs.png" alt="kern-a-lytics screenshot"/>
 
