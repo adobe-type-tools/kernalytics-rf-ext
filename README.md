@@ -2,7 +2,9 @@
 ⚠️ WARNING: This extension works, but it’s work in progress. 
 It may not do what you expect. Back up your data. ⚠️ 
 
-<img src="kern-a-lytics.png" alt="kern-a-lytics screenshot"/>
+This plugin needs at least Glyphs 2.5-1120!
+
+<img src="kern-a-lytics-Glyphs.png" alt="kern-a-lytics screenshot"/>
 
 # Kern-A-Lytics v0.1
 
