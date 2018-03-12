@@ -151,7 +151,7 @@ class CanvasDelegate(object):
 class FlexibleWindow(object):
 
     min_w_height = 800
-    button_width = 200
+    button_width = 150
     padding = 10
 
     def __init__(self, fonts):
@@ -232,7 +232,7 @@ class FlexibleWindow(object):
         button_step_space = button_whitespace / (len(buttons) - 1)
         for i, (b_label, b_callback_name) in enumerate(buttons):
             button = vanilla.Button((
-                self.w_width - self.padding - self.button_width,
+                -(self.padding + self.button_width),
                 button_top + i * button_height,
                 self.button_width, button_height), b_label,
                 callback=getattr(self, b_callback_name)
@@ -318,7 +318,7 @@ class FlexibleWindow(object):
         list_width = self.w_width - self.button_width - self.padding * 3
 
         self.w.list_filter = vanilla.PopUpButton(
-            (10, -240, list_width, 20),
+            (10, -240, -(self.padding + self.button_width + self.padding), 20),
             self.filter_options,
             callback=self.filter_callback
         )
@@ -326,7 +326,7 @@ class FlexibleWindow(object):
         # list of kerning pairs (bottom)
         column_pairs = self.make_columns(self.pair_list)
         self.w.display_list = vanilla.List(
-            (10, -210, list_width, -10),
+            (10, -210, -(self.padding + self.button_width + self.padding), -10),
             column_pairs,
             columnDescriptions=[{'title': 'L'}, {'title': 'R'}],
             allowsMultipleSelection=False,
