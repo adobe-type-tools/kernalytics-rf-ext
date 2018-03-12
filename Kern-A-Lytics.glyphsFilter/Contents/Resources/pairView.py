@@ -50,7 +50,6 @@ class PairView(AppKit.NSView): # , metaclass=ClassNameIncrementer):
             w, h = [i - 2 * self._inset for i in self.frame().size]
 
             glyph_pair = self._glyphData
-            print("__glyph_pair", glyph_pair, self._kern_value)
             glyph_l, glyph_r = glyph_pair
             font = glyph_l.getParent()
             upm = font.info.unitsPerEm
