@@ -50,7 +50,9 @@ class KernGraph(FilterWithDialog):
 			import traceback
 			print traceback.format_exc()
 		return (True, None)
-		
+	
+	def process_(self, sender):
+		pass
 	def __file__(self):
 		"""Please leave this method unchanged"""
 		return __file__
