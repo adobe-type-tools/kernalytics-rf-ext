@@ -33,9 +33,16 @@ class KernGraph(FilterWithDialog):
 	
 	# Actual filter
 	def runFilterWithLayer_error_(self, layer, error):
+		font = layer.font()
+		return self.showWindow(font)
+	
+	def runFilterWithLayers_error_(self, layers, error):
+		font = layers[0].font()
+		return self.showWindow(font)
+	
+	def showWindow(self, font):
 		try:
 			a = []
-			font = layer.font()
 			for idx in range(len(font.masters)):
 				a.append(RFont(font, idx))
 			FlexibleWindow(a)
