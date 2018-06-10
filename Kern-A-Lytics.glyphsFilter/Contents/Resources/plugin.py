@@ -27,10 +27,6 @@ class KernGraph(FilterWithDialog):
 	def settings(self):
 		self.menuName = "Kern-A-Lytics"
 	
-	# On dialog show
-	def start(self):
-		pass
-	
 	# Actual filter
 	def runFilterWithLayer_error_(self, layer, error):
 		font = layer.font()
