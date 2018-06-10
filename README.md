@@ -2,13 +2,13 @@
 ⚠️ WARNING: This extension works, but it’s work in progress. 
 It may not do what you expect. Back up your data. ⚠️ 
 
-The Glyphs plugin needs at least Glyphs 2.5-1120!
-
 <img src="kern-a-lytics-Glyphs.png" alt="kern-a-lytics screenshot"/>
 
 # Kern-A-Lytics v0.1
 
-This extension helps analyzing and fixing the consistency of kerning across several master UFOs.  
+This extension helps analyzing and fixing the consistency of kerning across several masters.
+
+A version for RoboFont and Glyphs is available.
 
 ## UI Elements
 
@@ -25,6 +25,7 @@ A double-click on a slider will delete that kerning pair for that specific maste
 
 The list contains all combined kerning pairs for all open UFOs.
 
+The Glyphs plugin shows the kerning of all masters of the current font.
 
 #### List Filter
 
@@ -57,5 +58,7 @@ how to fix the former, the latter will be fixed very soon.
 
 ## Note
 
-Kern-A-Lytics is only compatible with Robofont 3.
+The Kern-A-Lytics RoboFont extension is only compatible with Robofont 3.
+
+The Glyphs plugin needs at least Glyphs 2.5-1120.
 
