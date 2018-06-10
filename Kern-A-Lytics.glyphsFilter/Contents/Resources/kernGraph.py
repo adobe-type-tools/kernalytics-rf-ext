@@ -260,9 +260,11 @@ class FlexibleWindow(object):
                 button)
             # button_top += self.padding / 2
             button_top += button_step_space
-
-        # graph labels with monospaced digits
-        nsfont = AppKit.NSFont.monospacedDigitSystemFontOfSize_weight_(14, 0.0)
+        try:
+            # graph labels with monospaced digits
+            nsfont = AppKit.NSFont.monospacedDigitSystemFontOfSize_weight_(14, 0.0)
+        except:
+            nsfont = AppKit.NSFont.fontWithName_size_("Menlo", 14)
 
         # pair preview
         
