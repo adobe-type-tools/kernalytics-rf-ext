@@ -281,16 +281,19 @@ class FlexibleWindow(object):
                 kern_value = 0
 
             repr_pair = kerningHelper.get_repr_pair(f, initial_pair)
-            # XXXX the following line is problematic
-            # if UFOs with different group structures are opened
-            repr_glyphs = [f[g_name] for g_name in repr_pair]
-            pair_preview.setGlyphData_kerning(repr_glyphs, kern_value)
+            if repr_pair is not None:
+                # XXXX the following line is problematic
+                # if UFOs with different group structures are opened
+                repr_glyphs = [f[g_name] for g_name in repr_pair]
+                pair_preview.setGlyphData_kerning(repr_glyphs, kern_value)
 
-            setattr(
-                self.w.pairPreview,
-                'pair_{}'.format(f_index),
-                pair_preview
-            )
+                setattr(
+                    self.w.pairPreview,
+                    'pair_{}'.format(f_index),
+                    pair_preview
+                )
+            else:
+                print ("Warning: there are no glyphs for the class pair:", initial_pair)
 
         # pop-up button for list filtering
 
