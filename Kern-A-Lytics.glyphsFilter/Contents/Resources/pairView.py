@@ -72,7 +72,8 @@ class PairView(AppKit.NSView): # , metaclass=ClassNameIncrementer):
             drawBot.translate(0, upm / 3)
             drawBot.translate(-glyph_l.width - self._kern_value / 2, 0)
             for glyph in glyph_pair:
-                path = glyph.getRepresentation('defconAppKit.NSBezierPath')
+                #path = glyph.getRepresentation('defconAppKit.NSBezierPath') # this is broken in Glyphs v.1149 and below
+                path = glyph._layer.completeBezierPath
                 drawBot.stroke(None)
                 # drawBot.fill(0, 1, 0)
                 drawBot.fill(0)
