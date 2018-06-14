@@ -468,6 +468,7 @@ class FlexibleWindow(object):
             pair_obj = getattr(
                 self.w.pairPreview, 'pair_{}'.format(i))
             pair_obj.setKerning(value)
+            self.update_kerning(i, pair, value)
         self.w.c.update()
 
     def delete_button_callback(self, sender):
