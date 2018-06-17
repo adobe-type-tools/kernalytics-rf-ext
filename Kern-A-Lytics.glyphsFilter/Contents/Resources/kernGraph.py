@@ -56,7 +56,7 @@ class CanvasDelegate(object):
         drawBot.lineCap('round')
 
         
-        max_value = max([abs(v) for v in self.parent.number_values])
+        max_value = max([0 if v is None else abs(v) for v in self.parent.number_values])
         zero_point = c_height / 2
         min_scale = 40
         self.max_allowed_value = 500
@@ -65,13 +65,15 @@ class CanvasDelegate(object):
         slider_controls = []
         
         for i, value in enumerate(self.parent.number_values):
-            if max_value > min_scale:
-                self.amplitude = value / max_value
+            if value is not None:
+                if max_value > min_scale:
+                    amplitude = value / max_value
+                else:
+                    amplitude = value / min_scale
             else:
-                self.amplitude = value / min_scale
-
+                amplitude = 0
             x = graph_margin + i * self.parent.step_dist
-            y = zero_point + c_height * 0.4 * self.amplitude
+            y = zero_point + c_height * 0.4 * amplitude
             y_window = (
                 self.parent.w_height - c_height +
                 y - self.parent.padding
@@ -102,21 +104,23 @@ class CanvasDelegate(object):
             if prev:
                 drawBot.line(prev, (x, y))
             prev = x, y
-            drawBot.fill(1)
-            drawBot.stroke(0)
-            drawBot.strokeWidth(0.25)
             
-            textSize = Foundation.NSString.stringWithString_("%d" % value).sizeWithAttributes_({AppKit.NSFontAttributeName:drawBot.currentFont})
-            badgeWidth = math.ceil(textSize.width) + 6
-            badgeRect = ((x - badgeWidth*0.5, round(y + badgeHeight*0.5 + 2)), (badgeWidth, badgeHeight))
-            badgeRect = AppKit.NSInsetRect(badgeRect, 0.25, 0.25)
-            badgePath = AppKit.NSBezierPath.bezierPathWithRoundedRect_cornerRadius_(badgeRect, 2)
-            drawBot.drawPath(badgePath)
+        for x, y, value in slider_controls:
+            if value is not None:
+                drawBot.fill(1)
+                drawBot.stroke(0)
+                drawBot.strokeWidth(0.25)
+                textSize = Foundation.NSString.stringWithString_("%d" % value).sizeWithAttributes_({AppKit.NSFontAttributeName:drawBot.currentFont})
+                badgeWidth = math.ceil(textSize.width) + 6
+                badgeRect = ((x - badgeWidth*0.5, round(y + badgeHeight*0.5 + 2)), (badgeWidth, badgeHeight))
+                badgeRect = AppKit.NSInsetRect(badgeRect, 0.25, 0.25)
+                badgePath = AppKit.NSBezierPath.bezierPathWithRoundedRect_cornerRadius_(badgeRect, 2)
+                drawBot.drawPath(badgePath)
             
-            drawBot.fill(0)
-            textPosX = x - textSize.width * 0.5
-            textPosY = y + badgeHeight*0.5 + 2
-            drawBot.text("%d" % value, (textPosX, round(textPosY)))
+                drawBot.fill(0)
+                textPosX = x - textSize.width * 0.5
+                textPosY = y + badgeHeight*0.5 + 2
+                drawBot.text("%d" % value, (textPosX, round(textPosY)))
 
     def mouseDragged(self, event):
         if self.drag_index is not None:
@@ -124,6 +128,8 @@ class CanvasDelegate(object):
             x, y = self.graph_in_window[drag_index]
             dx, dy = sub_points((x, y), event.locationInWindow())
             original_value = self.parent.number_values[drag_index]
+            if original_value is None:
+                original_value = 0
             if self.graph_scale <= self.min_graph_scale:
                 self.graph_scale = self.min_graph_scale
 
@@ -398,7 +404,7 @@ class FlexibleWindow(object):
             '' if value is None else str(int(value)) for value in value_list
         ]
         self.number_values = [
-            0 if value is None else int(value) for value in value_list
+            None if value is None else int(value) for value in value_list
         ]
 
     def update_kerning(self, font_index, pair, value):
