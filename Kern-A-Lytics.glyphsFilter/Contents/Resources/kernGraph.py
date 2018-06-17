@@ -453,7 +453,6 @@ class FlexibleWindow(object):
             self.w.c.update()
             self.update_display(new_values)
 
-            print(self.pair, new_values)
             for f_index, f in enumerate(self.fonts):
                 repr_pair = kerningHelper.get_repr_pair(f, self.pair)
                 repr_glyphs = [f[g_name] for g_name in repr_pair]
