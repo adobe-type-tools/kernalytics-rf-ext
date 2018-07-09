@@ -101,8 +101,8 @@ def get_repr_pair(font, def_pair):
     # workaround for new get() method in build 1805210915
     # (returns tuple instead of list)
     if set(def_pair) <= set(font_glyph_order + font_groups):
-        left_glyphs = group_dict.get(def_pair[0], [left_item])
-        right_glyphs = group_dict.get(def_pair[1], [right_item])
+        left_glyphs = list(group_dict.get(def_pair[0], [left_item]))
+        right_glyphs = list(group_dict.get(def_pair[1], [right_item]))
         left_glyphs.sort(key=lambda x: font_glyph_order.index(x))
         right_glyphs.sort(key=lambda x: font_glyph_order.index(x))
         return left_glyphs[0], right_glyphs[0]
@@ -121,7 +121,7 @@ def get_combined_kern_dict(fonts):
     c_kerning = {}
     for font in fonts:
         for pair in combined_pairs:
-            value = font.kerning.get(pair, None)
+            value = font.kerning.get(pair, False)
             c_kerning.setdefault(pair, []).append(value)
 
     # make the dict an ordered dict, so we do not have

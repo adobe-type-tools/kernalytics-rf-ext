@@ -280,7 +280,7 @@ class FlexibleWindow(object):
 
             initial_pair = self.pair_list[0]
             kern_value = self.cmb_kern_dict.get(initial_pair)[f_index]
-            if kern_value is None:
+            if kern_value in [None, False]:
                 kern_value = 0
 
             repr_pair = kerningHelper.get_repr_pair(f, initial_pair)
@@ -421,10 +421,10 @@ class FlexibleWindow(object):
 
     def update_display(self, value_list):
         self.label_values = [
-            '' if value is None else str(int(value)) for value in value_list
+            '' if value in [None, False] else str(int(value)) for value in value_list
         ]
         self.number_values = [
-            0 if value is None else int(value) for value in value_list
+            0 if value in [None, False] else int(value) for value in value_list
         ]
 
     def update_kerning(self, font_index, pair, value):
