@@ -121,7 +121,7 @@ def get_combined_kern_dict(fonts):
     c_kerning = {}
     for font in fonts:
         for pair in combined_pairs:
-            value = font.kerning.get(pair, False)
+            value = font.kerning.find(pair, None)
             c_kerning.setdefault(pair, []).append(value)
 
     # make the dict an ordered dict, so we do not have
