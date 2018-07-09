@@ -96,9 +96,13 @@ def get_repr_pair(font, def_pair):
     left_item, right_item = def_pair
     font_glyph_order = font.lib['public.glyphOrder']
     font_groups = list(font.groups.keys())
+    group_dict = {}
+    group_dict.update(font.groups)
+    # workaround for new get() method in build 1805210915
+    # (returns tuple instead of list)
     if set(def_pair) <= set(font_glyph_order + font_groups):
-        left_glyphs = font.groups.get(def_pair[0], [left_item])
-        right_glyphs = font.groups.get(def_pair[1], [right_item])
+        left_glyphs = group_dict.get(def_pair[0], [left_item])
+        right_glyphs = group_dict.get(def_pair[1], [right_item])
         left_glyphs.sort(key=lambda x: font_glyph_order.index(x))
         right_glyphs.sort(key=lambda x: font_glyph_order.index(x))
         return left_glyphs[0], right_glyphs[0]
