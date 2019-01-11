@@ -455,10 +455,11 @@ class FlexibleWindow(object):
 
             for f_index, f in enumerate(self.fonts):
                 repr_pair = kerningHelper.get_repr_pair(f, self.pair)
-                repr_glyphs = [f[g_name] for g_name in repr_pair]
-                kern_value = f.kerning.get(self.pair, 0)
-                pair_obj = getattr(self.w.pairPreview, 'pair_{}'.format(f_index))
-                pair_obj.setGlyphData_kerning(repr_glyphs, kern_value)
+                if repr_pair:
+                    repr_glyphs = [f[g_name] for g_name in repr_pair]
+                    kern_value = f.kerning.get(self.pair, 0)
+                    pair_obj = getattr(self.w.pairPreview, 'pair_{}'.format(f_index))
+                    pair_obj.setGlyphData_kerning(repr_glyphs, kern_value)
     @property
     def checked(self):
         checked = []
