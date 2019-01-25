@@ -1,21 +1,19 @@
 # encoding: utf-8
-from __future__ import print_function
-from mojo.glyphPreview import GlyphPreview
+from __future__ import print_function, division
 import AppKit, Foundation
 import math
 import vanilla
-import mojo.drawingTools as drawBot
-from mojo.canvas import Canvas
+import GlyphsApp.drawingTools as drawBot
+from GlyphsApp.UI import CanvasView
+from GlyphsApp import Message
 from pprint import pprint
 import importlib
 
 import kerningHelper
-importlib.reload(kerningHelper)
+#importlib.reload(kerningHelper)
 import pairView
-importlib.reload(pairView)
+#importlib.reload(pairView)
 from pairView import DrawPair
-# from lib.tools.debugTools import ClassNameIncrementer
-
 
 def sub_points(p1, p2):
     (x1, y1) = p1
@@ -34,9 +32,9 @@ class CanvasDelegate(object):
         self.parent = parent
         self.drag_index = None
 
-    def draw(self):
+    def draw(self, view):
         self.graph_in_window = []
-        c_width, c_height = self.parent.graph_width, self.parent.graph_height
+        c_width, c_height = view.frame().size #self.parent.graph_width, self.parent.graph_height
 
         drawBot.fill(None)
 
@@ -56,7 +54,8 @@ class CanvasDelegate(object):
         drawBot.stroke(0, 0, 1)
         drawBot.strokeWidth(5)
         drawBot.lineCap('round')
-    
+
+        
         max_value = max([0 if v is None else abs(v) for v in self.parent.number_values])
         zero_point = c_height / 2
         min_scale = 40
@@ -64,7 +63,7 @@ class CanvasDelegate(object):
         self.graph_scale = max_value / c_height
         self.min_graph_scale = min_scale / c_height
         slider_controls = []
-
+        
         for i, value in enumerate(self.parent.number_values):
             if value is not None:
                 if max_value > min_scale:
@@ -80,9 +79,9 @@ class CanvasDelegate(object):
                 y - self.parent.padding
             )
             self.graph_in_window.append((x, y_window))
-        
+            
             slider_controls.append((x, y, value))
-    
+        
         prev = None
         # slider heads
         radius = 5
@@ -105,19 +104,19 @@ class CanvasDelegate(object):
             if prev:
                 drawBot.line(prev, (x, y))
             prev = x, y
-        
+            
         for x, y, value in slider_controls:
             if value is not None:
                 drawBot.fill(1)
                 drawBot.stroke(0)
                 drawBot.strokeWidth(0.25)
-                textSize = Foundation.NSString.stringWithString_("%d" % value).sizeWithAttributes_({AppKit.NSFontAttributeName:AppKit.NSFont.systemFontOfSize_(0)})
+                textSize = Foundation.NSString.stringWithString_("%d" % value).sizeWithAttributes_({AppKit.NSFontAttributeName:drawBot.currentFont})
                 badgeWidth = math.ceil(textSize.width) + 6
                 badgeRect = ((x - badgeWidth*0.5, round(y + badgeHeight*0.5 + 2)), (badgeWidth, badgeHeight))
                 badgeRect = AppKit.NSInsetRect(badgeRect, 0.25, 0.25)
-                badgePath = AppKit.NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(badgeRect, 2, 2)
+                badgePath = AppKit.NSBezierPath.bezierPathWithRoundedRect_cornerRadius_(badgeRect, 2)
                 drawBot.drawPath(badgePath)
-        
+            
                 drawBot.fill(0)
                 textPosX = x - textSize.width * 0.5
                 textPosY = y + badgeHeight*0.5 + 2
@@ -193,7 +192,7 @@ class FlexibleWindow(object):
         else:
             self.min_unit_width = 150
             self.p_point_size = 120
-
+        
         self.p_point_pos = -250
         self.list_pos = self.p_point_pos + 40
         
@@ -223,7 +222,7 @@ class FlexibleWindow(object):
         self.step_dist = self.w_width / self.steps
         graph_margin = self.step_dist / 2
         self.canvas_delegate = CanvasDelegate(self)
-        self.w.c = Canvas(
+        self.w.c = CanvasView(
             (0, 0, -0, self.p_point_pos - self.p_point_size),
             delegate=self.canvas_delegate,
             #canvasSize=(self.graph_width, self.graph_height),
@@ -419,9 +418,6 @@ class FlexibleWindow(object):
     def resize_callback(self, sender):
         _, _, self.w_width, self.w_height = self.w.getPosSize()
         
-        self.parent.graph_width = self.w_width
-        self.parent.graph_height = self.w_height + self.p_point_pos - self.p_point_size
-        
         self.step_dist = self.w_width / self.steps
 
         for i, number in enumerate(self.label_values):
@@ -459,10 +455,11 @@ class FlexibleWindow(object):
 
             for f_index, f in enumerate(self.fonts):
                 repr_pair = kerningHelper.get_repr_pair(f, self.pair)
-                repr_glyphs = [f[g_name] for g_name in repr_pair]
-                kern_value = f.kerning.get(self.pair, 0)
-                pair_obj = getattr(self.w.pairPreview, 'pair_{}'.format(f_index))
-                pair_obj.setGlyphData_kerning(repr_glyphs, kern_value)
+                if repr_pair:
+                    repr_glyphs = [f[g_name] for g_name in repr_pair]
+                    kern_value = f.kerning.get(self.pair, 0)
+                    pair_obj = getattr(self.w.pairPreview, 'pair_{}'.format(f_index))
+                    pair_obj.setGlyphData_kerning(repr_glyphs, kern_value)
     @property
     def checked(self):
         checked = []
@@ -511,7 +508,8 @@ class FlexibleWindow(object):
             pass
 
         if not c_index:
-            print('Please select interpolation target(s)')
+            
+            Message('Please select interpolation target(s)', "Click the glyph pair(s) you like to interpolate")
             pass
 
         for c_i in c_index:

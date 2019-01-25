@@ -2,11 +2,11 @@ import AppKit
 import vanilla
 from pprint import pprint
 from kerningHelper import get_repr_pair
-import mojo.drawingTools as drawBot
-from lib.tools.debugTools import ClassNameIncrementer
+import GlyphsApp.drawingTools as drawBot
+#from lib.tools.debugTools import ClassNameIncrementer
 
 
-class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
+class PairView(AppKit.NSView): # , metaclass=ClassNameIncrementer):
 
     def init(self):
         self = super(PairView, self).init()
@@ -18,7 +18,7 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
 
     def setGlyphData_kerning_(self, glyph_list, kerning):
         self._glyphData = glyph_list
-        self._kern_value = kerning
+        self.setKerning_(kerning)
         self.setNeedsDisplay_(True)
 
     def setGlyphData_(self, glyph_list):
@@ -34,52 +34,54 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
 
     def drawRect_(self, rect):
         # draw here!
-        AppKit.NSColor.whiteColor().set()
-        AppKit.NSRectFill(rect)
-        
-        if self.delegate.checked:
-            AppKit.NSColor.selectedControlColor().set()
-            selectionPath = AppKit.NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(AppKit.NSInsetRect(rect, 2, 2), 4, 4)
-            AppKit.NSColor.selectedControlColor().colorWithAlphaComponent_(0.1).set()
-            selectionPath.fill()
-            AppKit.NSColor.selectedControlColor().set()
-            selectionPath.stroke()
+        try:
+            AppKit.NSColor.whiteColor().set()
+            AppKit.NSRectFill(rect)
             
-        frame_width, frame_height = self.frame().size
-        w, h = [i - 2 * self._inset for i in self.frame().size]
+            if self.delegate.checked:
+                AppKit.NSColor.selectedControlColor().set()
+                selectionPath = AppKit.NSBezierPath.bezierPathWithRoundedRect_cornerRadius_(AppKit.NSInsetRect(rect, 2, 2), 4)
+                AppKit.NSColor.selectedControlColor().colorWithAlphaComponent_(0.1).set()
+                selectionPath.fill()
+                AppKit.NSColor.selectedControlColor().set()
+                selectionPath.stroke()
+                
+            frame_width, frame_height = self.frame().size
+            w, h = [i - 2 * self._inset for i in self.frame().size]
 
-        glyph_pair = self._glyphData
-        glyph_l, glyph_r = glyph_pair
-        font = glyph_l.getParent()
-        upm = font.info.unitsPerEm
-        scale_factor = h / (upm * 1.2)
-        drawBot.translate(frame_width / 2, self._inset)
-        drawBot.scale(scale_factor)
-
-        drawBot.stroke(None)
-        if self._kern_value <= 0:
-            drawBot.fill(1, 0.3, 0.75, 0.7)
-        else:
-            drawBot.fill(0, 0.8, 0, 0.7)
-            # drawBot.fill(0.4, 1, 0.8)
-        drawBot.rect(
-            0 - abs(self._kern_value) / 2, - self._inset / scale_factor,
-            abs(self._kern_value), 2 * self._inset / scale_factor)
-        drawBot.rect(
-            0 - abs(self._kern_value) / 2, (h - self._inset) / scale_factor,
-            abs(self._kern_value), 2 * self._inset / scale_factor)
-        drawBot.translate(0, upm / 3)
-        drawBot.translate(-glyph_l.width - self._kern_value / 2, 0)
-
-        for glyph in glyph_pair:
-            path = glyph.getRepresentation('defconAppKit.NSBezierPath')
+            glyph_pair = self._glyphData
+            glyph_l, glyph_r = glyph_pair
+            font = glyph_l.getParent()
+            upm = font.info.unitsPerEm
+            scale_factor = h / (upm * 1.2)
+            drawBot.translate(frame_width / 2, self._inset)
+            drawBot.scale(scale_factor)
 
             drawBot.stroke(None)
-            # drawBot.fill(0, 1, 0)
-            drawBot.fill(0)
-            drawBot.drawPath(path)
-            drawBot.translate(glyph.width + self._kern_value, 0)
-
+            if self._kern_value <= 0:
+                drawBot.fill(1, 0.3, 0.75, 0.7)
+            else:
+                drawBot.fill(0, 0.8, 0, 0.7)
+                # drawBot.fill(0.4, 1, 0.8)
+            drawBot.rect(
+                0 - abs(self._kern_value) / 2, - self._inset / scale_factor,
+                abs(self._kern_value), 2 * self._inset / scale_factor)
+            drawBot.rect(
+                0 - abs(self._kern_value) / 2, (h - self._inset) / scale_factor,
+                abs(self._kern_value), 2 * self._inset / scale_factor)
+            drawBot.translate(0, upm / 3)
+            drawBot.translate(-glyph_l.width - self._kern_value / 2, 0)
+            for glyph in glyph_pair:
+                #path = glyph.getRepresentation('defconAppKit.NSBezierPath') # this is broken in Glyphs v.1149 and below
+                path = glyph._layer.completeBezierPath
+                drawBot.stroke(None)
+                # drawBot.fill(0, 1, 0)
+                drawBot.fill(0)
+                drawBot.drawPath(path)
+                drawBot.translate(glyph.width + self._kern_value, 0)
+        except:
+            import traceback
+            print(traceback.format_exc())
     def mouseUp_(self, event):
         self.delegate.checked = not self.delegate.checked
         self.setNeedsDisplay_(True)

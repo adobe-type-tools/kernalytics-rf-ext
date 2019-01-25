@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDisplayName</key>
+	<string>Kern-A-Lytics</string>
+	<key>CFBundleExecutable</key>
+	<string>plugin</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.adobe-type-tools.Kern-A-Lytics</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Kern-A-Lytics</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleVersion</key>
+	<string>4</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright, adobe-type-tools, 2018</string>
+	<key>NSPrincipalClass</key>
+	<string>KernGraph</string>
+	<key>PyMainFileNames</key>
+	<array>
+		<string>../MacOS/main.py</string>
+	</array>
+</dict>
+</plist>
