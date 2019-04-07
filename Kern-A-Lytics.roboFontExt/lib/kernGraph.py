@@ -167,9 +167,6 @@ class FlexibleWindow(object):
             self.min_unit_width = 150
             self.p_point_size = 100
 
-        # by default, all checkboxes are unchecked
-        self.checked = [0 for i in range(len(self.fonts))]
-
         self.min_w_width = len(self.fonts) * self.min_unit_width
         # cmb_kern_dict is an ordered dict
         self.cmb_kern_dict = kerningHelper.get_combined_kern_dict(fonts)
@@ -294,25 +291,6 @@ class FlexibleWindow(object):
                 'pair_{}'.format(f_index),
                 pair_preview
             )
-
-        # checkboxes
-        for i, f in enumerate(self.fonts):
-            cb_x = self.padding + graph_margin + i * self.step_dist
-            cb_control = vanilla.CheckBox(
-                (
-                    cb_x - 6,
-                    pp_origin_y + self.p_point_size + self.padding * 2,
-                    22, 22),
-                '',
-                value=False,
-                sizeStyle='regular',
-                callback=self.checkbox_callback
-            )
-
-            setattr(
-                self.w,
-                'checkbox_{}'.format(i),
-                cb_control)
 
         # pop-up button for list filtering
         list_width = self.w_width - self.button_width - self.padding * 3
@@ -453,8 +431,6 @@ class FlexibleWindow(object):
         for i, number in enumerate(self.label_values):
             text_box = getattr(
                 self.w, 'textbox_{}'.format(i))
-            check_box = getattr(
-                self.w, 'checkbox_{}'.format(i))
             tb_x = self.padding + graph_margin + i * self.step_dist
             text_box.setPosSize(
                 (
@@ -462,10 +438,6 @@ class FlexibleWindow(object):
                     self.tb_width, self.tb_height))
 
             cb_x = self.padding + graph_margin + i * self.step_dist
-            check_box.setPosSize(
-                (
-                    cb_x - 6, pp_origin_y + self.p_point_size + self.padding,
-                    22, 22))
 
             pair_preview = getattr(
                 self.w.pairPreview, 'pair_{}'.format(i))
@@ -510,11 +482,13 @@ class FlexibleWindow(object):
                     self.w.pairPreview, 'pair_{}'.format(f_index))
                 pair_obj.setGlyphData_kerning(repr_glyphs, kern_value)
 
-    def checkbox_callback(self, sender):
-        for i, _ in enumerate(self.fonts):
-            cb_obj = getattr(
-                self.w, 'checkbox_{}'.format(i))
-            self.checked[i] = cb_obj.get()
+    @property
+    def checked(self):
+        checked = []
+        for f_index, _ in enumerate(self.fonts):
+            pair_obj = getattr(self.w.pairPreview, 'pair_{}'.format(f_index))
+            checked.append(pair_obj.checked)
+        return checked
 
     def update_stack(self, pair, value_list):
         self.values = value_list
