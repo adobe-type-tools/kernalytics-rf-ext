@@ -1,8 +1,8 @@
 from __future__ import print_function
-from mojo.glyphPreview import GlyphPreview
 import AppKit
 import math
 import vanilla
+import mojo.UI
 import mojo.drawingTools as drawBot
 from mojo.canvas import Canvas
 from pprint import pprint
@@ -630,4 +630,7 @@ class FlexibleWindow(object):
 if __name__ == '__main__':
 
     a = AllFonts('styleName')
-    FlexibleWindow(a)
+    if len(a):
+        FlexibleWindow(a)
+    else:
+        mojo.UI.Message('Please open some UFO files.')
