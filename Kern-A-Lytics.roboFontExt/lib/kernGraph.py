@@ -5,7 +5,6 @@ import vanilla
 import mojo.UI
 import mojo.drawingTools as drawBot
 from mojo.canvas import Canvas
-from pprint import pprint
 import importlib
 
 import kerningHelper
@@ -199,9 +198,11 @@ class FlexibleWindow(object):
         self.w.c = Canvas(
             (self.padding, self.padding, -self.padding, self.graph_height),
             delegate=self.canvas_delegate,
-            canvasSize=(self.graph_width, self.graph_height),
+            # XXX no idea why this works, but it’s better than hiding away
+            # controls below a non-expanding canvas.
+            canvasSize=(self.graph_width * 5, self.graph_height),
             # backgroundColor=AppKit.NSColor.orangeColor(),
-            backgroundColor=AppKit.NSColor.clearColor(),
+            # backgroundColor=AppKit.NSColor.clearColor(),
             drawsBackground=False,
         )
 
@@ -293,8 +294,6 @@ class FlexibleWindow(object):
             )
 
         # pop-up button for list filtering
-        list_width = self.w_width - self.button_width - self.padding * 3
-
         self.w.list_filter = vanilla.PopUpButton(
             (10, -240, -(self.padding + self.button_width + self.padding), 20),
             self.filter_options,
@@ -303,8 +302,9 @@ class FlexibleWindow(object):
 
         # list of kerning pairs (bottom)
         column_pairs = self.make_columns(self.pair_list)
-        self.w.display_list = vanilla.List(
-            (10, -210, -(self.padding + self.button_width + self.padding), -10),
+        self.w.display_list = vanilla.List((
+            10, -210,
+            -(self.padding + self.button_width + self.padding), -10),
             column_pairs,
             columnDescriptions=[{'title': 'L'}, {'title': 'R'}],
             allowsMultipleSelection=False,
@@ -418,11 +418,8 @@ class FlexibleWindow(object):
 
         self.graph_width = (
             self.w_width - 2 * self.padding)
-
-        # button_left = self.w_width - self.padding - self.button_width
         self.step_dist = self.graph_width / self.steps
         graph_margin = self.step_dist / 2
-        pp_origin_y = self.padding * 3 + self.graph_height + self.tb_height
 
         (pc_x, pc_y, _, pc_height) = self.w.pairPreview.getPosSize()
         self.w.pairPreview.setPosSize(
@@ -436,8 +433,6 @@ class FlexibleWindow(object):
                 (
                     tb_x - self.tb_width / 2, self.tb_y,
                     self.tb_width, self.tb_height))
-
-            cb_x = self.padding + graph_margin + i * self.step_dist
 
             pair_preview = getattr(
                 self.w.pairPreview, 'pair_{}'.format(i))
