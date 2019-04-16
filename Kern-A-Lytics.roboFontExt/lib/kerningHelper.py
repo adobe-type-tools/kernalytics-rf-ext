@@ -360,3 +360,42 @@ def single_pair_dict(cmb_kerning):
         if not any([side.startswith('public') for side in pair]):
             output[pair] = cmb_kerning.get(pair)
     return output
+
+
+def filter_pair_list_by_items(font, pair_list, filter_item_left=None, filter_item_right=None):
+    """
+    filter a combined kerning dictionary by item featured in the pairs 
+    filter_items can be either glyphs or groups
+    a font object is necessary for group analysis
+    """
+    # sanitizing input (?)
+    if len(filter_item_left.strip()) == 0:
+        filter_item_left = None
+    if len(filter_item_right.strip()) == 0:
+        filter_item_right = None
+
+    # no filtering needed here
+    if not filter_item_left and not filter_item_right:
+        return pair_list
+
+    # XXXX maybe it is expensive to have that calculate each time the pair list is updated?
+    # should this be cached somewhere?
+    grouped_dict_1, grouped_dict_2 = _make_grouped_dicts(font.groups)
+
+    # add groups to the filter items if relevant
+    pertinent_items_1 = [filter_item_left]
+    group_item_1 = grouped_dict_1.get(filter_item_left, None)
+    if group_item_1:
+        pertinent_items_1.append(group_item_1)
+    pertinent_items_2 = [filter_item_right]
+    group_item_2 = grouped_dict_2.get(filter_item_right, None)
+    if group_item_2:
+        pertinent_items_2.append(group_item_2)
+
+    filtered_kerning = []
+    for pair in pair_list:
+        pair_item_1, pair_item_2 = pair
+        if (filter_item_left == None or pair_item_1 in pertinent_items_1) and (filter_item_right == None or pair_item_2 in pertinent_items_2):
+            filtered_kerning.append(pair)
+
+    return filtered_kerning

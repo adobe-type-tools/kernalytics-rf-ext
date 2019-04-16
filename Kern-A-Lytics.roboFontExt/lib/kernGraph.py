@@ -295,9 +295,25 @@ class FlexibleWindow(object):
 
         # pop-up button for list filtering
         self.w.list_filter = vanilla.PopUpButton(
-            (10, -240, -(self.padding + self.button_width + self.padding), 20),
+            (10, -270, -(self.padding + self.button_width + self.padding), 20),
             self.filter_options,
             callback=self.filter_callback
+        )
+
+        # pair item filter fields
+        # x origin and width are just placeholder they will be re-calculated before the window open
+        self.w.pair_item_filter_left = vanilla.EditText(
+            (10, -240, 300, 20),
+            placeholder="Filter Left Item",
+            callback=self.pair_item_callback,
+            sizeStyle="small"
+
+        )
+        self.w.pair_item_filter_right = vanilla.EditText(
+            (-300, -240, 600, 20),
+            placeholder="Filter Right Item",
+            callback=self.pair_item_callback,
+            sizeStyle="small"
         )
 
         # list of kerning pairs (bottom)
@@ -310,6 +326,8 @@ class FlexibleWindow(object):
             allowsMultipleSelection=False,
             selectionCallback=self.list_callback)
 
+        # update pair item filter filed posSize before showing the window
+        self._update_pair_item_field_size()
         self.w.bind('resize', self.resize_callback)
         self.w.open()
 
@@ -414,6 +432,7 @@ class FlexibleWindow(object):
             font.kerning[pair] = value
 
     def resize_callback(self, sender):
+        # resize graph
         _, _, self.w_width, self.w_height = self.w.getPosSize()
 
         self.graph_width = (
@@ -440,9 +459,40 @@ class FlexibleWindow(object):
             pair_preview.setPosSize(
                 (pp_origin, 0, self.step_dist, -0))
 
+        # resize filter pair item filed
+        self._update_pair_item_field_size()
+
+    def _update_pair_item_field_size(self):
+        # x origin and width calculation
+        _, _, w_width, w_height = self.w.getPosSize()
+        margin_x, _, display_list_width, _ = self.w.display_list.getPosSize()
+        available_width = w_width + display_list_width - margin_x
+        # update the fields possize
+        x_left, y_left, w_left, h_left = self.w.pair_item_filter_left.getPosSize()
+        self.w.pair_item_filter_left.setPosSize((margin_x, y_left, available_width / 2 - margin_x, h_left))
+        x_right, y_right, w_right, h_right = self.w.pair_item_filter_right.getPosSize()
+        self.w.pair_item_filter_right.setPosSize((available_width / 2 + margin_x, y_right, available_width / 2, h_right))
+
     def filter_callback(self, sender):
-        sel_index = sender.get()
+        self.update_display_list()
+
+    def pair_item_callback(self, sender):
+        self.update_display_list()
+
+    def _get_filtered_pair_list(self):
+        sel_index = self.w.list_filter.get()
         self.pair_list = self.filtered_pairlists[sel_index]
+
+    def _get_filtered_per_item_pair_list(self):
+        # XXXX self.fonts[0] assume all fonts have the same groups structure
+        # this might be problematic sometimes (?)
+        self.pair_list = kerningHelper.filter_pair_list_by_items(self.fonts[0], self.pair_list,
+                                                                 filter_item_left=self.w.pair_item_filter_left.get(),
+                                                                 filter_item_right=self.w.pair_item_filter_right.get())
+
+    def update_display_list(self):
+        self._get_filtered_pair_list()
+        self._get_filtered_per_item_pair_list()
         self.w.display_list.set(self.make_columns(self.pair_list))
 
     def list_callback(self, sender):
