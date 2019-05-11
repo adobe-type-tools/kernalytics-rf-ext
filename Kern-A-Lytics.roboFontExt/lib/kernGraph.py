@@ -7,6 +7,7 @@ import mojo.drawingTools as drawBot
 from mojo.canvas import Canvas
 import importlib
 
+import fontSorter
 import kerningHelper
 importlib.reload(kerningHelper)
 import pairView
@@ -648,8 +649,8 @@ class FlexibleWindow(object):
 
 if __name__ == '__main__':
 
-    a = AllFonts('styleName')
-    if len(a):
-        FlexibleWindow(a)
+    fonts = fontSorter.sort_fonts(AllFonts())
+    if len(fonts):
+        FlexibleWindow(fonts)
     else:
         mojo.UI.Message('Please open some UFO files.')
