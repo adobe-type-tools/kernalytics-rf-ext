@@ -4,7 +4,7 @@ It may not do what you expect. Back up your data. ⚠️
 
 <img src="kern-a-lytics.png" alt="kern-a-lytics screenshot"/>
 
-# Kern-A-Lytics v0.1
+# Kern-A-Lytics v0.1.4
 
 This extension helps analyzing and fixing the consistency of kerning across several master UFOs.  
 
@@ -45,12 +45,9 @@ such as a list of exceptions, single pairs, very large kerning pairs, etc.
 
 ## Problems
 
-Currently, masters are sorted by Robofont’s `AllFonts('styleName')` functionality.
-Obviously, this is not the smartest way, but it shall work for version 0.1
+- It is possible to show UFOs with incompatible kerning groups alongside each other, but this behavior is mostly untested (see #12)
+- No undo (see #11, and the warning above)
 
-Re-sizing of the window is possible, but there are some problems with the canvas, 
-and the list & buttons are not hooked up to the re-size operation. I don’t know 
-how to fix the former, the latter will be fixed very soon.
 
 
 ## Note
