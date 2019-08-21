@@ -1,6 +1,5 @@
 import AppKit
 import vanilla
-from pprint import pprint
 from kerningHelper import get_repr_pair
 import mojo.drawingTools as drawBot
 from lib.tools.debugTools import ClassNameIncrementer
@@ -63,7 +62,7 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
         drawBot.rect(  # bottom rectangle
             0 - abs(self._kern_value) / 2, self._inset / scale_factor,
             abs(self._kern_value), 2 * self._inset / scale_factor
-		)
+        )
         drawBot.rect(  # top rectangle
             0 - abs(self._kern_value) / 2, (h - self._inset) / scale_factor,
             abs(self._kern_value), 2 * self._inset / scale_factor)
@@ -82,9 +81,11 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
         self.delegate.checked = not self.delegate.checked
         self.setNeedsDisplay_(True)
 
+
 class DrawPair(vanilla.Group):
 
     nsViewClass = PairView
+
     def __init__(self, posSize):
         self._setupView(self.nsViewClass, posSize)
         self.getNSView().delegate = self

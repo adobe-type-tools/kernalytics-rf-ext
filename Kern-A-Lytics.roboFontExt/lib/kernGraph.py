@@ -649,7 +649,14 @@ class FlexibleWindow(object):
 
 if __name__ == '__main__':
 
-    fonts = fontSorter.sort_fonts(AllFonts())
+    fonts_with_kerning = [
+        f for f in AllFonts() if len(f.kerning)]
+    fonts_without_kerning = [
+        f for f in AllFonts() if f not in fonts_with_kerning]
+    if fonts_without_kerning:
+        for ukf in fonts_without_kerning:
+            print(ukf.info.styleName, 'has no kerning')
+    fonts = fontSorter.sort_fonts(fonts_with_kerning)
     if len(fonts):
         FlexibleWindow(fonts)
     else:

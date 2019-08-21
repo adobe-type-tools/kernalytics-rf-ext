@@ -364,7 +364,7 @@ def single_pair_dict(cmb_kerning):
 
 def filter_pair_list_by_items(font, pair_list, filter_item_left=None, filter_item_right=None):
     """
-    filter a combined kerning dictionary by item featured in the pairs 
+    filter a combined kerning dictionary by item featured in the pairs
     filter_items can be either glyphs or groups
     a font object is necessary for group analysis
     """
@@ -378,8 +378,8 @@ def filter_pair_list_by_items(font, pair_list, filter_item_left=None, filter_ite
     if not filter_item_left and not filter_item_right:
         return pair_list
 
-    # XXXX maybe it is expensive to have that calculate each time the pair list is updated?
-    # should this be cached somewhere?
+    # XXXX maybe it is expensive to have that calculate each time the pair list
+    # is updated? Should this be cached somewhere?
     grouped_dict_1, grouped_dict_2 = _make_grouped_dicts(font.groups)
 
     # add groups to the filter items if relevant
@@ -395,7 +395,10 @@ def filter_pair_list_by_items(font, pair_list, filter_item_left=None, filter_ite
     filtered_kerning = []
     for pair in pair_list:
         pair_item_1, pair_item_2 = pair
-        if (filter_item_left == None or pair_item_1 in pertinent_items_1) and (filter_item_right == None or pair_item_2 in pertinent_items_2):
+        if(
+            (filter_item_left is None or pair_item_1 in pertinent_items_1) and
+            (filter_item_right is None or pair_item_2 in pertinent_items_2)
+        ):
             filtered_kerning.append(pair)
 
     return filtered_kerning
