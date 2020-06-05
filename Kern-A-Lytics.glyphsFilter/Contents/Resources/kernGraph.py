@@ -432,7 +432,7 @@ class FlexibleWindow(object):
         self.w.display_list.set(self.make_columns(self.pair_list))
 
     def list_callback(self, sender):
-        if not sender.getSelection() and len(self.w.display_list) is 0:
+        if not sender.getSelection() and len(self.w.display_list) == 0:
             # list is empty, don’t attempt any selection
 
             print('empty list')

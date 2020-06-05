@@ -14,6 +14,7 @@
 #
 ###########################################################################################################
 
+from __future__ import division, print_function, unicode_literals
 import objc
 from GlyphsApp import *
 from GlyphsApp.plugins import *
@@ -24,6 +25,7 @@ from kernGraph import FlexibleWindow
 
 class KernGraph(FilterWithDialog):
 		
+	@objc.python_method
 	def settings(self):
 		self.menuName = "Kern-A-Lytics"
 	
@@ -35,7 +37,8 @@ class KernGraph(FilterWithDialog):
 	def runFilterWithLayers_error_(self, layers, error):
 		font = layers[0].font()
 		return self.showWindow(font)
-	
+
+	@objc.python_method
 	def showWindow(self, font):
 		try:
 			a = []
@@ -44,11 +47,13 @@ class KernGraph(FilterWithDialog):
 			FlexibleWindow(a)
 		except:
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 		return (True, None)
 	
 	def process_(self, sender):
 		pass
+
+	@objc.python_method
 	def __file__(self):
 		"""Please leave this method unchanged"""
 		return __file__
