@@ -47,8 +47,7 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
 
         glyph_pair = self._glyphData
         glyph_l, glyph_r = glyph_pair
-        font = glyph_l.getParent()
-        upm = font.info.unitsPerEm
+        upm = glyph_l.font.info.unitsPerEm
         scale_factor = h / (upm * 1.2)
         drawBot.translate(frame_width / 2, self._inset)
         drawBot.scale(scale_factor)

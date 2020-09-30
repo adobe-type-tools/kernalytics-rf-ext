@@ -656,7 +656,12 @@ if __name__ == '__main__':
     if fonts_without_kerning:
         for ukf in fonts_without_kerning:
             print(ukf.info.styleName, 'has no kerning')
-    fonts = fontSorter.sort_fonts(fonts_with_kerning)
+    sorted_ufo_filenames = fontSorter.sort_fonts(
+        [f.path for f in fonts_with_kerning])
+    fonts = sorted(
+        [f for f in fonts_with_kerning],
+        key=lambda f: sorted_ufo_filenames.index(f.path))
+
     if len(fonts):
         FlexibleWindow(fonts)
     else:
