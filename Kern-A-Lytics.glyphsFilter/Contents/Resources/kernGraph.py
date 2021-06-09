@@ -200,6 +200,9 @@ class FlexibleWindow(object):
         # cmb_kern_dict is an ordered dict
         self.cmb_kern_dict = kerningHelper.get_combined_kern_dict(fonts)
         self.pair_list = list(self.cmb_kern_dict.keys())
+        if len(self.pair_list) == 0:
+            Message("The font has no kerning")
+            return
         self.filtered_pairlists = self.make_filtered_pairlists(
             self.cmb_kern_dict)
 
