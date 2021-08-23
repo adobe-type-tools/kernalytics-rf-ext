@@ -96,9 +96,13 @@ def get_repr_pair(font, def_pair):
     left_item, right_item = def_pair
     font_glyph_order = font.lib['public.glyphOrder']
     font_groups = list(font.groups.keys())
+    group_dict = {}
+    group_dict.update(font.groups)
+    # workaround for new get() method in build 1805210915
+    # (returns tuple instead of list)
     if set(def_pair) <= set(font_glyph_order + font_groups):
-        left_glyphs = font.groups.get(def_pair[0], [left_item])
-        right_glyphs = font.groups.get(def_pair[1], [right_item])
+        left_glyphs = list(group_dict.get(def_pair[0], [left_item]))
+        right_glyphs = list(group_dict.get(def_pair[1], [right_item]))
         left_glyphs.sort(key=lambda x: font_glyph_order.index(x))
         right_glyphs.sort(key=lambda x: font_glyph_order.index(x))
         return left_glyphs[0], right_glyphs[0]
@@ -117,7 +121,7 @@ def get_combined_kern_dict(fonts):
     c_kerning = {}
     for font in fonts:
         for pair in combined_pairs:
-            value = font.kerning.get(pair, None)
+            value = font.kerning.find(pair, None)
             c_kerning.setdefault(pair, []).append(value)
 
     # make the dict an ordered dict, so we do not have
@@ -356,3 +360,45 @@ def single_pair_dict(cmb_kerning):
         if not any([side.startswith('public') for side in pair]):
             output[pair] = cmb_kerning.get(pair)
     return output
+
+
+def filter_pair_list_by_items(font, pair_list, filter_item_left=None, filter_item_right=None):
+    """
+    filter a combined kerning dictionary by item featured in the pairs
+    filter_items can be either glyphs or groups
+    a font object is necessary for group analysis
+    """
+    # sanitizing input (?)
+    if len(filter_item_left.strip()) == 0:
+        filter_item_left = None
+    if len(filter_item_right.strip()) == 0:
+        filter_item_right = None
+
+    # no filtering needed here
+    if not filter_item_left and not filter_item_right:
+        return pair_list
+
+    # XXXX maybe it is expensive to have that calculate each time the pair list
+    # is updated? Should this be cached somewhere?
+    grouped_dict_1, grouped_dict_2 = _make_grouped_dicts(font.groups)
+
+    # add groups to the filter items if relevant
+    pertinent_items_1 = [filter_item_left]
+    group_item_1 = grouped_dict_1.get(filter_item_left, None)
+    if group_item_1:
+        pertinent_items_1.append(group_item_1)
+    pertinent_items_2 = [filter_item_right]
+    group_item_2 = grouped_dict_2.get(filter_item_right, None)
+    if group_item_2:
+        pertinent_items_2.append(group_item_2)
+
+    filtered_kerning = []
+    for pair in pair_list:
+        pair_item_1, pair_item_2 = pair
+        if(
+            (filter_item_left is None or pair_item_1 in pertinent_items_1) and
+            (filter_item_right is None or pair_item_2 in pertinent_items_2)
+        ):
+            filtered_kerning.append(pair)
+
+    return filtered_kerning

@@ -1,6 +1,5 @@
 import AppKit
 import vanilla
-from pprint import pprint
 from kerningHelper import get_repr_pair
 import mojo.drawingTools as drawBot
 from lib.tools.debugTools import ClassNameIncrementer
@@ -34,9 +33,7 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
 
     def drawRect_(self, rect):
         # draw here!
-        AppKit.NSColor.whiteColor().set()
-        AppKit.NSRectFill(rect)
-        
+
         if self.delegate.checked:
             AppKit.NSColor.selectedControlColor().set()
             selectionPath = AppKit.NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(AppKit.NSInsetRect(rect, 2, 2), 4, 4)
@@ -44,28 +41,28 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
             selectionPath.fill()
             AppKit.NSColor.selectedControlColor().set()
             selectionPath.stroke()
-            
+
         frame_width, frame_height = self.frame().size
         w, h = [i - 2 * self._inset for i in self.frame().size]
 
         glyph_pair = self._glyphData
         glyph_l, glyph_r = glyph_pair
-        font = glyph_l.getParent()
-        upm = font.info.unitsPerEm
+        upm = glyph_l.font.info.unitsPerEm
         scale_factor = h / (upm * 1.2)
         drawBot.translate(frame_width / 2, self._inset)
         drawBot.scale(scale_factor)
 
         drawBot.stroke(None)
         if self._kern_value <= 0:
-            drawBot.fill(1, 0.3, 0.75, 0.7)
+            drawBot.fill(1, 0.3, 0.75)
         else:
-            drawBot.fill(0, 0.8, 0, 0.7)
-            # drawBot.fill(0.4, 1, 0.8)
-        drawBot.rect(
-            0 - abs(self._kern_value) / 2, - self._inset / scale_factor,
-            abs(self._kern_value), 2 * self._inset / scale_factor)
-        drawBot.rect(
+            drawBot.fill(0, 0.8, 0)
+
+        drawBot.rect(  # bottom rectangle
+            0 - abs(self._kern_value) / 2, self._inset / scale_factor,
+            abs(self._kern_value), 2 * self._inset / scale_factor
+        )
+        drawBot.rect(  # top rectangle
             0 - abs(self._kern_value) / 2, (h - self._inset) / scale_factor,
             abs(self._kern_value), 2 * self._inset / scale_factor)
         drawBot.translate(0, upm / 3)
@@ -75,7 +72,6 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
             path = glyph.getRepresentation('defconAppKit.NSBezierPath')
 
             drawBot.stroke(None)
-            # drawBot.fill(0, 1, 0)
             drawBot.fill(0)
             drawBot.drawPath(path)
             drawBot.translate(glyph.width + self._kern_value, 0)
@@ -84,14 +80,16 @@ class PairView(AppKit.NSView, metaclass=ClassNameIncrementer):
         self.delegate.checked = not self.delegate.checked
         self.setNeedsDisplay_(True)
 
+
 class DrawPair(vanilla.Group):
 
     nsViewClass = PairView
+
     def __init__(self, posSize):
         self._setupView(self.nsViewClass, posSize)
         self.getNSView().delegate = self
         self.checked = False
-    
+
     def setGlyphData_kerning(self, glyph, kerning):
         self.getNSView().setGlyphData_kerning_(glyph, kerning)
 

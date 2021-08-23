@@ -1,14 +1,13 @@
-# encoding: utf-8
 from __future__ import print_function
-from mojo.glyphPreview import GlyphPreview
-import AppKit, Foundation
+import AppKit
 import math
 import vanilla
+import mojo.UI
 import mojo.drawingTools as drawBot
 from mojo.canvas import Canvas
-from pprint import pprint
 import importlib
 
+import fontSorter
 import kerningHelper
 importlib.reload(kerningHelper)
 import pairView
@@ -56,72 +55,46 @@ class CanvasDelegate(object):
         drawBot.stroke(0, 0, 1)
         drawBot.strokeWidth(5)
         drawBot.lineCap('round')
-    
-        max_value = max([0 if v is None else abs(v) for v in self.parent.number_values])
+
+        prev = None
+        max_value = max([abs(v) for v in self.parent.number_values])
         zero_point = c_height / 2
         min_scale = 40
         self.max_allowed_value = 500
-        self.graph_scale = max_value / c_height
-        self.min_graph_scale = min_scale / c_height
+        self.graph_scale = max_value / self.parent.graph_height
+        self.min_graph_scale = min_scale / self.parent.graph_height
         slider_controls = []
 
         for i, value in enumerate(self.parent.number_values):
-            if value is not None:
-                if max_value > min_scale:
-                    amplitude = value / max_value
-                else:
-                    amplitude = value / min_scale
+            if max_value > min_scale:
+                self.amplitude = value / max_value
             else:
-                amplitude = 0
+                self.amplitude = value / min_scale
+
             x = graph_margin + i * self.parent.step_dist
-            y = zero_point + c_height * 0.4 * amplitude
+            y = zero_point + c_height * 0.4 * self.amplitude
             y_window = (
-                self.parent.w_height - c_height +
+                self.parent.w_height - self.parent.graph_height +
                 y - self.parent.padding
             )
             self.graph_in_window.append((x, y_window))
-        
-            slider_controls.append((x, y, value))
-    
-        prev = None
+            if prev:
+                drawBot.line(prev, (x, y))
+            prev = x, y
+            slider_controls.append((x, y))
+
         # slider heads
-        radius = 5
-        badgeHeight = 16
-        for x, y, value in slider_controls:
-            drawBot.fill(0)
+        for x, y in slider_controls:
+            radius = 10
+            drawBot.fill(1)
             drawBot.stroke(0)
-            drawBot.strokeWidth(3)
+            drawBot.strokeWidth(0.5)
             drawBot.oval(x - radius, y - radius, 2 * radius, 2 * radius)
-            if prev:
-                drawBot.line(prev, (x, y))
-            prev = x, y
-        prev = None
-        # slider heads
-        for x, y, value in slider_controls:
-            drawBot.fill(0.5, 0.5, 1)
-            drawBot.stroke(0.5, 0.5, 1)
-            drawBot.strokeWidth(2.5)
-            drawBot.oval(x - radius, y - radius, 2 * radius, 2 * radius)
-            if prev:
-                drawBot.line(prev, (x, y))
-            prev = x, y
-        
-        for x, y, value in slider_controls:
-            if value is not None:
-                drawBot.fill(1)
-                drawBot.stroke(0)
-                drawBot.strokeWidth(0.25)
-                textSize = Foundation.NSString.stringWithString_("%d" % value).sizeWithAttributes_({AppKit.NSFontAttributeName:AppKit.NSFont.systemFontOfSize_(0)})
-                badgeWidth = math.ceil(textSize.width) + 6
-                badgeRect = ((x - badgeWidth*0.5, round(y + badgeHeight*0.5 + 2)), (badgeWidth, badgeHeight))
-                badgeRect = AppKit.NSInsetRect(badgeRect, 0.25, 0.25)
-                badgePath = AppKit.NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(badgeRect, 2, 2)
-                drawBot.drawPath(badgePath)
-        
-                drawBot.fill(0)
-                textPosX = x - textSize.width * 0.5
-                textPosY = y + badgeHeight*0.5 + 2
-                drawBot.text("%d" % value, (textPosX, round(textPosY)))
+
+    def update_textBox(self, tb_index):
+        text_box = getattr(
+            self.parent.w, 'textbox_{}'.format(tb_index))
+        text_box.set(self.parent.label_values[tb_index])
 
     def mouseDragged(self, event):
         if self.drag_index is not None:
@@ -129,8 +102,6 @@ class CanvasDelegate(object):
             x, y = self.graph_in_window[drag_index]
             dx, dy = sub_points((x, y), event.locationInWindow())
             original_value = self.parent.number_values[drag_index]
-            if original_value is None:
-                original_value = 0
             if self.graph_scale <= self.min_graph_scale:
                 self.graph_scale = self.min_graph_scale
 
@@ -152,6 +123,7 @@ class CanvasDelegate(object):
             self.parent.update_display(self.parent.values)
             self.parent.update_kerning(
                 self.drag_index, self.parent.pair, new_kern_value)
+            self.update_textBox(drag_index)
 
     def mouseDown(self, event):
         # find point closest to mouse pointer
@@ -172,6 +144,7 @@ class CanvasDelegate(object):
             self.parent.update_display(self.parent.values)
             self.parent.update_kerning(
                 self.drag_index, self.parent.pair, None)
+            self.update_textBox(self.drag_index)
             self.parent.w.c.update()
 
 
@@ -186,17 +159,14 @@ class FlexibleWindow(object):
         self.fonts = fonts
         if len(self.fonts) in range(4):
             self.min_unit_width = 350
-            self.p_point_size = 180
+            self.p_point_size = 160
         elif len(self.fonts) in range(4, 7):
             self.min_unit_width = 200
-            self.p_point_size = 140
+            self.p_point_size = 120
         else:
             self.min_unit_width = 150
-            self.p_point_size = 120
+            self.p_point_size = 100
 
-        self.p_point_pos = -250
-        self.list_pos = self.p_point_pos + 40
-        
         self.min_w_width = len(self.fonts) * self.min_unit_width
         # cmb_kern_dict is an ordered dict
         self.cmb_kern_dict = kerningHelper.get_combined_kern_dict(fonts)
@@ -220,16 +190,21 @@ class FlexibleWindow(object):
         )
 
         _, _, self.w_width, self.w_height = self.w.getPosSize()
-        self.step_dist = self.w_width / self.steps
+        self.graph_height = self.w_height / 3
+        self.graph_width = (
+            self.w_width - 2 * self.padding)
+        self.step_dist = self.graph_width / self.steps
         graph_margin = self.step_dist / 2
         self.canvas_delegate = CanvasDelegate(self)
         self.w.c = Canvas(
-            (0, 0, -0, self.p_point_pos - self.p_point_size),
+            (self.padding, self.padding, -self.padding, self.graph_height),
             delegate=self.canvas_delegate,
-            #canvasSize=(self.graph_width, self.graph_height),
+            # XXX no idea why this works, but it’s better than hiding away
+            # controls below a non-expanding canvas.
+            canvasSize=(self.graph_width * 5, self.graph_height),
             # backgroundColor=AppKit.NSColor.orangeColor(),
-            backgroundColor=AppKit.NSColor.whiteColor(),
-            #drawsBackground=False,
+            # backgroundColor=AppKit.NSColor.clearColor(),
+            drawsBackground=False,
         )
 
         # buttons
@@ -242,11 +217,11 @@ class FlexibleWindow(object):
             # ('Transfer Pair', 'transfer_button_callback'),
             ('+10', 'plus_button_callback'),
             ('-10', 'minus_button_callback'),
-            # ('+10%', 'dummy_button_callback'),
-            # ('-10%', 'dummy_button_callback'),
+            ('+10%', 'dummy_button_callback'),
+            ('-10%', 'dummy_button_callback'),
         ]
 
-        button_top = self.list_pos
+        button_top = -210
         # list starts at 210 and has 10 padding at bottom
         # total whitespace: 200 height - 8 * 20 = 40
         # individual_whitespace = 40 / (len(buttons) - 1)
@@ -267,16 +242,36 @@ class FlexibleWindow(object):
                 button)
             # button_top += self.padding / 2
             button_top += button_step_space
-        try:
-            # graph labels with monospaced digits
-            nsfont = AppKit.NSFont.monospacedDigitSystemFontOfSize_weight_(14, 0.0)
-        except:
-            nsfont = AppKit.NSFont.fontWithName_size_("Menlo", 14)
+
+        # graph labels with monospaced digits
+        nsfont = AppKit.NSFont.monospacedDigitSystemFontOfSize_weight_(14, 0.0)
+        for i, number in enumerate(self.label_values):
+            tb_x = self.padding + graph_margin + i * self.step_dist
+            self.tb_y = self.padding * 2 + self.graph_height
+            self.tb_height = 20
+            self.tb_width = 100
+
+            tb_control = vanilla.TextBox(
+                (
+                    tb_x - self.tb_width / 2, self.tb_y,
+                    self.tb_width, self.tb_height),
+                number,
+                alignment='center',
+                sizeStyle='small',
+                selectable=True,
+            )
+
+            tb_control.getNSTextField().setFont_(nsfont)
+            setattr(
+                self.w,
+                'textbox_{}'.format(i),
+                tb_control)
 
         # pair preview
-        
+        pp_origin_x = self.padding
+        pp_origin_y = self.padding * 4 + self.graph_height + self.tb_height
         self.w.pairPreview = vanilla.Group(
-            (0, (self.p_point_pos - self.p_point_size + 1), -0, self.p_point_size)
+            (pp_origin_x, pp_origin_y, self.w_width, self.p_point_size)
         )
         for f_index, f in enumerate(self.fonts):
             x = self.step_dist * f_index
@@ -288,37 +283,52 @@ class FlexibleWindow(object):
                 kern_value = 0
 
             repr_pair = kerningHelper.get_repr_pair(f, initial_pair)
-            if repr_pair is not None:
-                # XXXX the following line is problematic
-                # if UFOs with different group structures are opened
-                repr_glyphs = [f[g_name] for g_name in repr_pair]
-                pair_preview.setGlyphData_kerning(repr_glyphs, kern_value)
+            # XXXX the following line is problematic
+            # if UFOs with different group structures are opened
+            repr_glyphs = [f[g_name] for g_name in repr_pair]
+            pair_preview.setGlyphData_kerning(repr_glyphs, kern_value)
 
-                setattr(
-                    self.w.pairPreview,
-                    'pair_{}'.format(f_index),
-                    pair_preview
-                )
-            else:
-                print ("Warning: there are no glyphs for the class pair:", initial_pair)
+            setattr(
+                self.w.pairPreview,
+                'pair_{}'.format(f_index),
+                pair_preview
+            )
 
         # pop-up button for list filtering
-
         self.w.list_filter = vanilla.PopUpButton(
-            (10, self.list_pos - 30, -self.padding, 20),
+            (10, -270, -(self.padding + self.button_width + self.padding), 20),
             self.filter_options,
             callback=self.filter_callback
         )
 
+        # pair item filter fields
+        # x origin and width are just placeholder they will be re-calculated before the window open
+        self.w.pair_item_filter_left = vanilla.EditText(
+            (10, -240, 300, 20),
+            placeholder="Filter Left Item",
+            callback=self.pair_item_callback,
+            sizeStyle="small"
+
+        )
+        self.w.pair_item_filter_right = vanilla.EditText(
+            (-300, -240, 600, 20),
+            placeholder="Filter Right Item",
+            callback=self.pair_item_callback,
+            sizeStyle="small"
+        )
+
         # list of kerning pairs (bottom)
         column_pairs = self.make_columns(self.pair_list)
-        self.w.display_list = vanilla.List(
-            (10, self.list_pos, -(self.padding + self.button_width + self.padding), -10),
+        self.w.display_list = vanilla.List((
+            10, -210,
+            -(self.padding + self.button_width + self.padding), -10),
             column_pairs,
             columnDescriptions=[{'title': 'L'}, {'title': 'R'}],
             allowsMultipleSelection=False,
             selectionCallback=self.list_callback)
 
+        # update pair item filter filed posSize before showing the window
+        self._update_pair_item_field_size()
         self.w.bind('resize', self.resize_callback)
         self.w.open()
 
@@ -400,12 +410,18 @@ class FlexibleWindow(object):
             column_pairs.append(pair_dict)
         return column_pairs
 
+    def update_textBoxes(self):
+        for i, value in enumerate(self.label_values):
+            text_box = getattr(
+                self.w, 'textbox_{}'.format(i))
+            text_box.set(self.label_values[i])
+
     def update_display(self, value_list):
         self.label_values = [
             '' if value is None else str(int(value)) for value in value_list
         ]
         self.number_values = [
-            None if value is None else int(value) for value in value_list
+            0 if value is None else int(value) for value in value_list
         ]
 
     def update_kerning(self, font_index, pair, value):
@@ -417,22 +433,67 @@ class FlexibleWindow(object):
             font.kerning[pair] = value
 
     def resize_callback(self, sender):
+        # resize graph
         _, _, self.w_width, self.w_height = self.w.getPosSize()
-        
-        self.parent.graph_width = self.w_width
-        self.parent.graph_height = self.w_height + self.p_point_pos - self.p_point_size
-        
-        self.step_dist = self.w_width / self.steps
+
+        self.graph_width = (
+            self.w_width - 2 * self.padding)
+        self.step_dist = self.graph_width / self.steps
+        graph_margin = self.step_dist / 2
+
+        (pc_x, pc_y, _, pc_height) = self.w.pairPreview.getPosSize()
+        self.w.pairPreview.setPosSize(
+            (pc_x, pc_y, self.graph_width, pc_height))
 
         for i, number in enumerate(self.label_values):
-            pair_preview = getattr(self.w.pairPreview, 'pair_{}'.format(i))
+            text_box = getattr(
+                self.w, 'textbox_{}'.format(i))
+            tb_x = self.padding + graph_margin + i * self.step_dist
+            text_box.setPosSize(
+                (
+                    tb_x - self.tb_width / 2, self.tb_y,
+                    self.tb_width, self.tb_height))
+
+            pair_preview = getattr(
+                self.w.pairPreview, 'pair_{}'.format(i))
             pp_origin = self.step_dist * i
             pair_preview.setPosSize(
                 (pp_origin, 0, self.step_dist, -0))
 
+        # resize filter pair item filed
+        self._update_pair_item_field_size()
+
+    def _update_pair_item_field_size(self):
+        # x origin and width calculation
+        _, _, w_width, w_height = self.w.getPosSize()
+        margin_x, _, display_list_width, _ = self.w.display_list.getPosSize()
+        available_width = w_width + display_list_width - margin_x
+        # update the fields possize
+        x_left, y_left, w_left, h_left = self.w.pair_item_filter_left.getPosSize()
+        self.w.pair_item_filter_left.setPosSize((margin_x, y_left, available_width / 2 - margin_x, h_left))
+        x_right, y_right, w_right, h_right = self.w.pair_item_filter_right.getPosSize()
+        self.w.pair_item_filter_right.setPosSize((available_width / 2 + margin_x, y_right, available_width / 2, h_right))
+
     def filter_callback(self, sender):
-        sel_index = sender.get()
+        self.update_display_list()
+
+    def pair_item_callback(self, sender):
+        self.update_display_list()
+
+    def _get_filtered_pair_list(self):
+        sel_index = self.w.list_filter.get()
         self.pair_list = self.filtered_pairlists[sel_index]
+
+    def _get_filtered_per_item_pair_list(self):
+        # XXXX self.fonts[0] assume all fonts have the same groups structure
+        # this might be problematic sometimes (?)
+        self.pair_list = kerningHelper.filter_pair_list_by_items(self.fonts[0], self.pair_list,
+                                                                 filter_item_left=self.w.pair_item_filter_left.get(),
+                                                                 filter_item_right=self.w.pair_item_filter_right.get())
+
+    def update_display_list(self):
+        self._get_filtered_pair_list()
+        self._get_filtered_per_item_pair_list()
         self.w.display_list.set(self.make_columns(self.pair_list))
 
     def list_callback(self, sender):
@@ -456,13 +517,17 @@ class FlexibleWindow(object):
             self.values = new_values
             self.w.c.update()
             self.update_display(new_values)
+            self.update_textBoxes()
 
+            print(self.pair, new_values)
             for f_index, f in enumerate(self.fonts):
                 repr_pair = kerningHelper.get_repr_pair(f, self.pair)
                 repr_glyphs = [f[g_name] for g_name in repr_pair]
                 kern_value = f.kerning.get(self.pair, 0)
-                pair_obj = getattr(self.w.pairPreview, 'pair_{}'.format(f_index))
+                pair_obj = getattr(
+                    self.w.pairPreview, 'pair_{}'.format(f_index))
                 pair_obj.setGlyphData_kerning(repr_glyphs, kern_value)
+
     @property
     def checked(self):
         checked = []
@@ -476,11 +541,11 @@ class FlexibleWindow(object):
         self.cmb_kern_dict[pair] = value_list
 
         self.update_display(value_list)
+        self.update_textBoxes()
         for i, value in enumerate(value_list):
             pair_obj = getattr(
                 self.w.pairPreview, 'pair_{}'.format(i))
             pair_obj.setKerning(value)
-            self.update_kerning(i, pair, value)
         self.w.c.update()
 
     def delete_button_callback(self, sender):
@@ -506,8 +571,8 @@ class FlexibleWindow(object):
         new_values = [v for v in self.values]
         factor = 0.5
 
-        if len(number_values) < 3:
-            Message('Not enough masters', 'Need at least 3 masters to interpolate')
+        if len(number_values) > 3:
+            print('Need at least 3 masters to interpolate')
             pass
 
         if not c_index:
@@ -584,5 +649,20 @@ class FlexibleWindow(object):
 
 if __name__ == '__main__':
 
-    a = AllFonts('styleName')
-    FlexibleWindow(a)
+    fonts_with_kerning = [
+        f for f in AllFonts() if len(f.kerning)]
+    fonts_without_kerning = [
+        f for f in AllFonts() if f not in fonts_with_kerning]
+    if fonts_without_kerning:
+        for ukf in fonts_without_kerning:
+            print(ukf.info.styleName, 'has no kerning')
+    sorted_ufo_filenames = fontSorter.sort_fonts(
+        [f.path for f in fonts_with_kerning])
+    fonts = sorted(
+        [f for f in fonts_with_kerning],
+        key=lambda f: sorted_ufo_filenames.index(f.path))
+
+    if len(fonts):
+        FlexibleWindow(fonts)
+    else:
+        mojo.UI.Message('Please open some UFO files.')
